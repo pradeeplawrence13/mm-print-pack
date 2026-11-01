@@ -1,0 +1,415 @@
+from pathlib import Path
+import shutil, zipfile, json, textwrap
+
+root = Path("/mnt/data/MM-PRINT-PACK-Full-HTML-App")
+assets = root / "assets"
+assets.mkdir(parents=True, exist_ok=True)
+src_logo = Path("/mnt/data/MM LOGO ALL USES(2).png")
+shutil.copy2(src_logo, assets / "business-logo.png")
+
+html = r'''<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#ffd000">
+<title>MM PRINT &amp; PACK | Business Manager</title>
+<style>
+:root{
+ --yellow:#ffd000;--yellow-soft:#fff6c7;--ink:#171717;--ink-2:#292929;
+ --bg:#f5f5f2;--surface:#fff;--muted:#777;--line:#e9e9e4;
+ --green:#16834a;--green-bg:#eaf7ef;--red:#c43b35;--red-bg:#fff0ef;
+ --orange:#a76500;--orange-bg:#fff4df;--blue:#285ca8;--blue-bg:#edf3ff;
+ --radius:18px;--shadow:0 8px 28px rgba(20,20,20,.055);
+}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #ffd00080;outline-offset:2px}
+.app{min-height:100vh;display:grid;grid-template-columns:258px minmax(0,1fr)}
+.sidebar{background:var(--ink);color:#fff;padding:20px 15px;display:flex;flex-direction:column;gap:18px;position:sticky;top:0;height:100vh;overflow:auto}
+.brand-card{background:#fff;border-radius:15px;padding:9px;display:flex;align-items:center;justify-content:center}
+.brand-card img{width:100%;max-width:218px;height:auto;display:block}
+.brand-sub{text-align:center;color:#bdbdbd;font-size:10px;letter-spacing:1.7px;margin-top:-10px}
+.nav-group-title{font-size:10px;letter-spacing:1.5px;color:#888;padding:8px 11px 4px;font-weight:800}
+.nav{display:grid;gap:4px}
+.nav button{border:0;background:transparent;color:#d7d7d7;text-align:left;padding:11px 12px;border-radius:11px;display:flex;gap:12px;align-items:center;font-size:13px;transition:.15s}
+.nav button:hover{background:#ffffff14;color:#fff}.nav button.active{background:var(--yellow);color:var(--ink);font-weight:800}
+.nav-icon{width:20px;text-align:center;font-size:16px}
+.sidebar-bottom{margin-top:auto;border-top:1px solid #393939;padding:14px 8px 0;color:#aaa;font-size:10px;line-height:1.7}
+.main{min-width:0;padding:26px clamp(15px,3vw,38px) 45px}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:25px}
+.crumb{font-size:11px;color:var(--muted);letter-spacing:.5px;margin-bottom:5px}
+h1{font-size:clamp(22px,3vw,30px);letter-spacing:-.8px;margin:0}
+h2{font-size:17px;margin:0}h3{font-size:14px;margin:0}
+.top-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.owner-chip{background:#fff;border:1px solid var(--line);padding:9px 12px;border-radius:99px;font-size:11px;color:#555}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:10px 13px;font-size:12px;font-weight:700}
+.btn:hover{border-color:#c7a500}.btn.primary{background:var(--yellow);border-color:var(--yellow)}.btn.dark{background:var(--ink);color:#fff;border-color:var(--ink)}.btn.danger{color:var(--red);border-color:#f0cecb;background:#fff}
+.btn.small{padding:7px 9px;font-size:11px}.btn:disabled{opacity:.5;cursor:not-allowed}
+.page{display:none}.page.active{display:block}
+.page-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;margin:0 0 17px}.page-intro p{margin:6px 0 0;color:var(--muted);font-size:12px;line-height:1.5}
+.grid{display:grid;gap:14px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:17px;box-shadow:var(--shadow);min-width:0}
+.metric-label{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.metric-icon{width:33px;height:33px;border-radius:10px;background:var(--yellow-soft);display:grid;place-items:center;color:#3b3000;font-size:16px}
+.metric-value{font-size:clamp(19px,2.3vw,27px);font-weight:850;letter-spacing:-.8px;margin-top:13px;overflow-wrap:anywhere}
+.metric-foot{font-size:10px;color:var(--muted);margin-top:5px}
+.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:24px 0 12px}
+.quick-grid{grid-template-columns:repeat(5,minmax(0,1fr))}
+.quick{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;font-weight:750;font-size:12px;box-shadow:var(--shadow);min-height:90px}
+.quick:hover{border-color:#d6b000;transform:translateY(-1px)}.quick .q-icon{font-size:21px;display:block;margin-bottom:10px}
+.two-col{grid-template-columns:1.25fr 1fr;margin-top:15px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.muted{color:var(--muted);font-size:11px}.empty{padding:28px 10px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
+.list-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-top:1px solid #f0f0ed}
+.list-row:first-child{border-top:0}.row-title{font-size:12px;font-weight:750}.row-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.amount{font-size:12px;font-weight:800;white-space:nowrap}.positive{color:var(--green)}.negative{color:var(--red)}
+.bar-item{margin:15px 0}.bar-caption{display:flex;justify-content:space-between;font-size:11px;margin-bottom:7px;gap:8px}.bar-track{height:8px;background:#f0f0ec;border-radius:99px;overflow:hidden}.bar-fill{height:100%;background:var(--yellow);border-radius:99px}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}.toolbar input,.toolbar select{width:auto;min-width:150px;max-width:260px}
+input,select,textarea{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 11px;color:var(--ink);width:100%;font-size:12px}
+textarea{resize:vertical;min-height:72px}.field label{display:block;font-size:10px;color:#555;font-weight:800;margin-bottom:6px;letter-spacing:.2px}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.field.full{grid-column:1/-1}
+.table-wrap{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:auto;box-shadow:var(--shadow)}
+table{border-collapse:collapse;width:100%;min-width:720px}th,td{text-align:left;padding:12px 13px;border-bottom:1px solid #efefec;font-size:11px;vertical-align:middle}
+th{background:#fafaf8;color:#777;font-size:10px;letter-spacing:.3px;text-transform:uppercase;position:sticky;top:0}
+tr:last-child td{border-bottom:0}td strong{font-size:11px}
+.pill{display:inline-block;padding:5px 8px;border-radius:99px;font-size:9px;font-weight:800;background:#eee;color:#555;white-space:nowrap}
+.pill.paid,.pill.income{background:var(--green-bg);color:var(--green)}.pill.pending,.pill.partial{background:var(--orange-bg);color:var(--orange)}.pill.overdue,.pill.expense{background:var(--red-bg);color:var(--red)}.pill.sent{background:var(--blue-bg);color:var(--blue)}
+.notice{background:#fff8d9;border:1px solid #f0df83;color:#5b4a00;border-radius:12px;padding:12px 14px;font-size:11px;line-height:1.55;margin-top:15px}
+.profile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+.profile-logo{width:210px;max-width:100%;height:auto;display:block;margin-bottom:12px}
+.modal-backdrop{display:none;position:fixed;inset:0;background:#0008;z-index:30;padding:16px;align-items:center;justify-content:center}.modal-backdrop.open{display:flex}
+.modal{background:#fff;border-radius:18px;width:min(680px,100%);max-height:92vh;overflow:auto;padding:21px;box-shadow:0 20px 70px #0003}
+.modal-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px}.close{border:0;background:#f1f1ee;border-radius:9px;width:33px;height:33px;font-size:20px}
+.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.toast{position:fixed;right:20px;bottom:20px;background:#171717;color:white;padding:12px 16px;border-radius:11px;font-size:12px;z-index:50;opacity:0;transform:translateY(8px);transition:.2s;pointer-events:none}.toast.show{opacity:1;transform:translateY(0)}
+.kpi-line{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid #eee;font-size:12px}.kpi-line:last-child{border:0}
+.logo-preview{background:white;border:1px solid var(--line);border-radius:12px;padding:8px;display:inline-block}
+@media(max-width:1050px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){
+ .app{display:block}.sidebar{position:sticky;top:0;z-index:20;height:auto;padding:8px 10px;gap:4px}
+ .brand-card,.brand-sub,.nav-group-title,.sidebar-bottom{display:none}.nav{display:flex;overflow-x:auto;gap:4px}.nav button{white-space:nowrap;padding:10px;font-size:11px}
+ .main{padding:18px 12px 35px}.topbar{align-items:flex-start}.owner-chip{display:none}
+ .two-col{grid-template-columns:1fr}.quick-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .profile-grid{grid-template-columns:1fr}.page-intro{align-items:flex-start;flex-direction:column}
+}
+@media(max-width:420px){.metrics{gap:8px}.card{padding:13px}.metric-value{font-size:18px}.top-actions .btn{padding:8px 9px}}
+@media print{.sidebar,.top-actions,.toolbar,.btn{display:none!important}.app{display:block}.main{padding:0}.page{display:none!important}.page.active{display:block!important}.card{box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="brand-card"><img src="assets/business-logo.png" alt="MM PRINT & PACK official logo"></div>
+  <div class="brand-sub">BUSINESS MANAGEMENT SYSTEM</div>
+  <div class="nav-group-title">MAIN WORKSPACE</div>
+  <nav class="nav" aria-label="Main navigation">
+    <button class="active" data-page="dashboard"><span class="nav-icon">▦</span>Dashboard</button>
+    <button data-page="customers"><span class="nav-icon">♙</span>Customers</button>
+    <button data-page="suppliers"><span class="nav-icon">♧</span>Suppliers</button>
+    <button data-page="quotations"><span class="nav-icon">▤</span>Quotations</button>
+    <button data-page="invoices"><span class="nav-icon">▧</span>Invoices</button>
+    <button data-page="income"><span class="nav-icon">↗</span>Income</button>
+    <button data-page="expenses"><span class="nav-icon">↘</span>Expenses</button>
+    <button data-page="payments"><span class="nav-icon">₹</span>Payments</button>
+    <button data-page="transactions"><span class="nav-icon">↔</span>Transactions</button>
+    <button data-page="reports"><span class="nav-icon">▥</span>Reports</button>
+    <button data-page="settings"><span class="nav-icon">⚙</span>Settings</button>
+  </nav>
+  <div class="sidebar-bottom">MM PRINT &amp; PACK<br>Visakhapatnam, Andhra Pradesh<br>GSTIN: 37HDBPK0327M2ZE<br><br>Two-owner business workspace</div>
+</aside>
+
+<main class="main">
+<header class="topbar">
+ <div><div class="crumb">MM PRINT &amp; PACK / <span id="crumbPage">DASHBOARD</span></div><h1 id="pageTitle">Business Overview</h1></div>
+ <div class="top-actions"><span class="owner-chip">● Owner workspace</span><button class="btn" onclick="exportCSV()">Export CSV</button><button class="btn primary" onclick="openEntry('income')">＋ Add Entry</button></div>
+</header>
+
+<!-- DASHBOARD -->
+<section class="page active" id="dashboard">
+ <div class="grid metrics">
+  <div class="card"><div class="metric-label">Total Income <span class="metric-icon">↗</span></div><div class="metric-value" id="dashIncome">₹0</div><div class="metric-foot">All recorded incoming amounts</div></div>
+  <div class="card"><div class="metric-label">Total Expenses <span class="metric-icon">↘</span></div><div class="metric-value" id="dashExpense">₹0</div><div class="metric-foot">All recorded outgoing amounts</div></div>
+  <div class="card"><div class="metric-label">Net Cash Flow <span class="metric-icon">₹</span></div><div class="metric-value" id="dashNet">₹0</div><div class="metric-foot">Income less expenses</div></div>
+  <div class="card"><div class="metric-label">Pending Receivables <span class="metric-icon">◷</span></div><div class="metric-value" id="dashReceivable">₹0</div><div class="metric-foot">Balance due from customers</div></div>
+  <div class="card"><div class="metric-label">Quotation Value <span class="metric-icon">▤</span></div><div class="metric-value" id="dashQuote">₹0</div><div class="metric-foot">Total saved quotation value</div></div>
+  <div class="card"><div class="metric-label">Invoice Value <span class="metric-icon">▧</span></div><div class="metric-value" id="dashInvoice">₹0</div><div class="metric-foot">Total saved invoice value</div></div>
+  <div class="card"><div class="metric-label">Supplier Payables <span class="metric-icon">♧</span></div><div class="metric-value" id="dashPayable">₹0</div><div class="metric-foot">Balance due to suppliers</div></div>
+  <div class="card"><div class="metric-label">Customers <span class="metric-icon">♙</span></div><div class="metric-value" id="dashCustomers">0</div><div class="metric-foot">Saved customer records</div></div>
+ </div>
+ <div class="section-head"><h2>Quick Actions</h2><span class="muted">Frequently used business tasks</span></div>
+ <div class="grid quick-grid">
+  <button class="quick" onclick="openEntry('income')"><span class="q-icon">＋</span>Add Income</button>
+  <button class="quick" onclick="openEntry('expense')"><span class="q-icon">－</span>Add Expense</button>
+  <button class="quick" onclick="openCustomer()"><span class="q-icon">♙</span>Add Customer</button>
+  <button class="quick" onclick="openDocument('quotation')"><span class="q-icon">▤</span>Create Quotation</button>
+  <button class="quick" onclick="openDocument('invoice')"><span class="q-icon">▧</span>Create Invoice</button>
+ </div>
+ <div class="grid two-col">
+  <div class="card"><div class="card-head"><h2>Recent Transactions</h2><button class="btn small" onclick="showPage('transactions')">View register</button></div><div id="recentTransactions"><div class="empty">No transactions yet. Add an income or expense entry.</div></div></div>
+  <div class="card"><div class="card-head"><h2>Expense Breakdown</h2><span class="muted">Category-wise</span></div><div id="expenseBreakdown"><div class="empty">Expense categories will appear here after entries are saved.</div></div></div>
+ </div>
+ <div class="notice"><b>Prototype data notice:</b> This front-end saves data in this browser using localStorage. It is not yet shared between two owners and must not be used as the only official accounting record. A secure cloud backend, authentication, audit trail and backups are required for production.</div>
+</section>
+
+<!-- CUSTOMERS -->
+<section class="page" id="customers">
+ <div class="page-intro"><div><h2>Customer Management (CRM)</h2><p>Maintain customer contact details, GST details, billing addresses and order history.</p></div><button class="btn primary" onclick="openCustomer()">＋ Add Customer</button></div>
+ <div class="toolbar"><input id="customerSearch" placeholder="Search customer, mobile or business…" oninput="renderCustomers()"></div>
+ <div class="table-wrap"><table><thead><tr><th>Customer / Business</th><th>Contact Person</th><th>Mobile</th><th>GSTIN</th><th>City / Address</th><th>Action</th></tr></thead><tbody id="customerRows"></tbody></table></div>
+</section>
+
+<!-- SUPPLIERS -->
+<section class="page" id="suppliers">
+ <div class="page-intro"><div><h2>Supplier Management</h2><p>Track paper vendors, printing partners, designers, maintenance vendors and service providers.</p></div><button class="btn primary" onclick="openSupplier()">＋ Add Supplier</button></div>
+ <div class="toolbar"><input id="supplierSearch" placeholder="Search supplier, mobile or category…" oninput="renderSuppliers()"></div>
+ <div class="table-wrap"><table><thead><tr><th>Supplier / Vendor</th><th>Category</th><th>Contact</th><th>Mobile</th><th>Address</th><th>Action</th></tr></thead><tbody id="supplierRows"></tbody></table></div>
+</section>
+
+<!-- QUOTATIONS -->
+<section class="page" id="quotations">
+ <div class="page-intro"><div><h2>Quotation Management</h2><p>Create estimates for customized boxes, die cutting, folding, printing and design jobs.</p></div><button class="btn primary" onclick="openDocument('quotation')">＋ Create Quotation</button></div>
+ <div class="toolbar"><input id="quoteSearch" placeholder="Search quotation or customer…" oninput="renderDocuments('quotation')"><select id="quoteStatus" onchange="renderDocuments('quotation')"><option value="">All statuses</option><option>Draft</option><option>Sent</option><option>Accepted</option><option>Rejected</option><option>Expired</option></select></div>
+ <div class="table-wrap"><table><thead><tr><th>Quotation No.</th><th>Date</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead><tbody id="quotationRows"></tbody></table></div>
+</section>
+
+<!-- INVOICES -->
+<section class="page" id="invoices">
+ <div class="page-intro"><div><h2>Invoice Management</h2><p>Generate bills, record advances and partial payments, and monitor customer balances.</p></div><button class="btn primary" onclick="openDocument('invoice')">＋ Create Invoice</button></div>
+ <div class="toolbar"><input id="invoiceSearch" placeholder="Search invoice or customer…" oninput="renderDocuments('invoice')"><select id="invoiceStatus" onchange="renderDocuments('invoice')"><option value="">All payment statuses</option><option>Paid</option><option>Partially Paid</option><option>Unpaid</option></select></div>
+ <div class="table-wrap"><table><thead><tr><th>Invoice No.</th><th>Date</th><th>Customer</th><th>Total</th><th>Received</th><th>Balance</th><th>Status</th><th>Actions</th></tr></thead><tbody id="invoiceRows"></tbody></table></div>
+</section>
+
+<!-- INCOME -->
+<section class="page" id="income">
+ <div class="page-intro"><div><h2>Income Management</h2><p>Record customer receipts, advances, die-cutting charges, folding charges and other income.</p></div><button class="btn primary" onclick="openEntry('income')">＋ Record Income</button></div>
+ <div class="grid metrics" style="margin-bottom:14px;grid-template-columns:repeat(2,minmax(0,1fr))"><div class="card"><div class="metric-label">Total Income</div><div class="metric-value" id="incomePageTotal">₹0</div></div><div class="card"><div class="metric-label">Income Entries</div><div class="metric-value" id="incomePageCount">0</div></div></div>
+ <div class="toolbar"><input id="incomeSearch" placeholder="Search income entries…" oninput="renderEntries('income')"></div>
+ <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Received From</th><th>Payment Mode</th><th>Notes</th><th>Amount</th><th>Action</th></tr></thead><tbody id="incomeRows"></tbody></table></div>
+</section>
+
+<!-- EXPENSES -->
+<section class="page" id="expenses">
+ <div class="page-intro"><div><h2>Expense Management</h2><p>Track salaries, designer charges, printing, materials, machinery maintenance and factory overheads.</p></div><button class="btn primary" onclick="openEntry('expense')">＋ Record Expense</button></div>
+ <div class="grid metrics" style="margin-bottom:14px;grid-template-columns:repeat(2,minmax(0,1fr))"><div class="card"><div class="metric-label">Total Expenses</div><div class="metric-value" id="expensePageTotal">₹0</div></div><div class="card"><div class="metric-label">Expense Entries</div><div class="metric-value" id="expensePageCount">0</div></div></div>
+ <div class="toolbar"><input id="expenseSearch" placeholder="Search expense entries…" oninput="renderEntries('expense')"></div>
+ <div class="table-wrap"><table><thead><tr><th>Date</th><th>Category</th><th>Paid To</th><th>Payment Mode</th><th>Notes</th><th>Amount</th><th>Action</th></tr></thead><tbody id="expenseRows"></tbody></table></div>
+</section>
+
+<!-- PAYMENTS -->
+<section class="page" id="payments">
+ <div class="page-intro"><div><h2>Payment Tracking</h2><p>View outstanding customer balances and supplier dues. Record each payment against its related document.</p></div><button class="btn primary" onclick="openPayment()">＋ Record Payment</button></div>
+ <div class="grid two-col">
+  <div class="card"><div class="card-head"><h2>Customer Receivables</h2><span class="muted">Pending from customers</span></div><div id="receivables"></div></div>
+  <div class="card"><div class="card-head"><h2>Supplier Payables</h2><span class="muted">Pending to suppliers</span></div><div id="payables"></div></div>
+ </div>
+ <div class="notice">Payment records must be linked to the relevant invoice or supplier bill in a production system. Do not record the same receipt again as a separate income entry, or cash received may be double-counted.</div>
+</section>
+
+<!-- TRANSACTIONS -->
+<section class="page" id="transactions">
+ <div class="page-intro"><div><h2>Transaction Register</h2><p>Central record of all manually recorded incoming and outgoing amounts.</p></div><button class="btn" onclick="exportCSV()">Export CSV</button></div>
+ <div class="toolbar"><input id="transactionSearch" placeholder="Search category, party, notes…" oninput="renderTransactions()"><select id="transactionFilter" onchange="renderTransactions()"><option value="">All transaction types</option><option value="income">Income</option><option value="expense">Expense</option></select></div>
+ <div class="table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Category</th><th>Party</th><th>Payment Mode</th><th>Reference</th><th>Amount</th><th>Action</th></tr></thead><tbody id="transactionRows"></tbody></table></div>
+</section>
+
+<!-- REPORTS -->
+<section class="page" id="reports">
+ <div class="page-intro"><div><h2>Reports &amp; Analytics</h2><p>Review cash movement, expense categories, customer dues and business performance.</p></div><button class="btn" onclick="window.print()">Print Report</button></div>
+ <div class="toolbar"><label class="muted">From <input id="reportFrom" type="date" onchange="renderReports()"></label><label class="muted">To <input id="reportTo" type="date" onchange="renderReports()"></label></div>
+ <div class="grid metrics"><div class="card"><div class="metric-label">Income in Period</div><div class="metric-value" id="reportIncome">₹0</div></div><div class="card"><div class="metric-label">Expenses in Period</div><div class="metric-value" id="reportExpense">₹0</div></div><div class="card"><div class="metric-label">Net Cash Flow</div><div class="metric-value" id="reportNet">₹0</div></div><div class="card"><div class="metric-label">Transaction Count</div><div class="metric-value" id="reportCount">0</div></div></div>
+ <div class="grid two-col"><div class="card"><h2>Expense Categories</h2><div id="reportCategories"></div></div><div class="card"><h2>Business Totals</h2><div id="reportTotals"></div></div></div>
+ <div class="notice">This report shows recorded cash entries, not audited profit. True accounting profit may require inventory, cost of goods sold, depreciation, GST treatment, credit sales and other accounting adjustments.</div>
+</section>
+
+<!-- SETTINGS -->
+<section class="page" id="settings">
+ <div class="page-intro"><div><h2>Business Settings</h2><p>Company details, owner setup guidance, categories, data export and application preferences.</p></div></div>
+ <div class="grid profile-grid">
+  <div class="card"><img class="profile-logo" src="assets/business-logo.png" alt="MM PRINT & PACK logo"><h2>MM PRINT &amp; PACK</h2><p class="muted">Printing · Die Cutting · Folding · Customized Packaging</p><div class="kpi-line"><span>GSTIN</span><b>37HDBPK0327M2ZE</b></div><div class="kpi-line"><span>Contact</span><b>95022 23591</b></div><div class="kpi-line"><span>Office</span><b>Gopalapatnam, Visakhapatnam</b></div><div class="kpi-line"><span>Factory</span><b>Marripalem, Visakhapatnam</b></div></div>
+  <div class="card"><h2>Owner Access &amp; Cloud Sync</h2><p class="muted">Production deployment requirements for the two business owners.</p><div class="kpi-line"><span>Owner 1</span><b>Full access</b></div><div class="kpi-line"><span>Owner 2</span><b>Full access</b></div><div class="kpi-line"><span>Shared database</span><b>Backend required</b></div><div class="kpi-line"><span>Audit history</span><b>Backend required</b></div><div class="kpi-line"><span>Automatic backup</span><b>Backend required</b></div><p class="muted">Use secure authentication and a shared cloud database (for example, a properly configured Supabase or Firebase project). Never put secret API keys in front-end HTML.</p></div>
+  <div class="card"><h2>Data Management</h2><p class="muted">Download a local backup of the prototype data or clear this browser's local records.</p><div class="toolbar"><button class="btn" onclick="downloadBackup()">Download JSON Backup</button><button class="btn" onclick="exportCSV()">Export Transactions CSV</button></div><button class="btn danger" onclick="clearData()">Clear all local prototype data</button></div>
+  <div class="card"><h2>Business Service List</h2><div class="kpi-line"><span>Customized boxes</span><b>Available</b></div><div class="kpi-line"><span>Sweet &amp; cake boxes</span><b>Available</b></div><div class="kpi-line"><span>Wedding &amp; visiting cards</span><b>Available</b></div><div class="kpi-line"><span>Files, brochures &amp; pamphlets</span><b>Available</b></div><div class="kpi-line"><span>Printing, die cutting &amp; folding</span><b>Available</b></div><div class="kpi-line"><span>Digital marketing</span><b>Available</b></div></div>
+ </div>
+</section>
+</main>
+</div>
+
+<!-- Entry modal -->
+<div class="modal-backdrop" id="entryModal"><div class="modal">
+ <div class="modal-head"><div><div class="crumb">FINANCIAL ENTRY</div><h2 id="entryTitle">Add Income</h2></div><button class="close" onclick="closeModal('entryModal')">×</button></div>
+ <form id="entryForm"><div class="form-grid">
+  <div class="field"><label>Transaction Type *</label><select id="entryType"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+  <div class="field"><label>Date *</label><input id="entryDate" type="date" required></div>
+  <div class="field"><label>Category *</label><select id="entryCategory" required></select></div>
+  <div class="field"><label>Amount (₹) *</label><input id="entryAmount" type="number" min="0.01" step="0.01" placeholder="Enter amount" required></div>
+  <div class="field"><label>Payment Mode *</label><select id="entryMode"><option>Cash</option><option>UPI</option><option>Google Pay</option><option>PhonePe</option><option>Bank Transfer</option><option>Cheque</option><option>Other</option></select></div>
+  <div class="field"><label>Party / Customer / Vendor</label><input id="entryParty" placeholder="Name of person or business"></div>
+  <div class="field"><label>Reference Number</label><input id="entryReference" placeholder="UPI ID, bill no. or reference"></div>
+  <div class="field"><label>Recorded By</label><select id="entryOwner"><option>Owner 1</option><option>Owner 2</option></select></div>
+  <div class="field full"><label>Description / Notes</label><textarea id="entryNotes" placeholder="Enter details about this transaction"></textarea></div>
+ </div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('entryModal')">Cancel</button><button class="btn primary" type="submit">Save Entry</button></div></form>
+</div></div>
+
+<!-- Customer modal -->
+<div class="modal-backdrop" id="customerModal"><div class="modal">
+ <div class="modal-head"><div><div class="crumb">CUSTOMER CRM</div><h2>Add Customer</h2></div><button class="close" onclick="closeModal('customerModal')">×</button></div>
+ <form id="customerForm"><div class="form-grid">
+  <div class="field"><label>Customer / Business Name *</label><input id="custName" required></div><div class="field"><label>Contact Person</label><input id="custContact"></div>
+  <div class="field"><label>Mobile Number *</label><input id="custMobile" required inputmode="tel"></div><div class="field"><label>WhatsApp Number</label><input id="custWhatsapp" inputmode="tel"></div>
+  <div class="field"><label>Email</label><input id="custEmail" type="email"></div><div class="field"><label>GSTIN (Optional)</label><input id="custGst"></div>
+  <div class="field full"><label>Billing Address</label><textarea id="custAddress"></textarea></div><div class="field full"><label>Notes</label><textarea id="custNotes"></textarea></div>
+ </div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('customerModal')">Cancel</button><button class="btn primary">Save Customer</button></div></form>
+</div></div>
+
+<!-- Supplier modal -->
+<div class="modal-backdrop" id="supplierModal"><div class="modal">
+ <div class="modal-head"><div><div class="crumb">SUPPLIER DIRECTORY</div><h2>Add Supplier / Vendor</h2></div><button class="close" onclick="closeModal('supplierModal')">×</button></div>
+ <form id="supplierForm"><div class="form-grid">
+  <div class="field"><label>Supplier / Vendor Name *</label><input id="supName" required></div><div class="field"><label>Category</label><select id="supCategory"><option>Paper / Raw Material</option><option>Printing Partner</option><option>Designer</option><option>Machinery / Maintenance</option><option>Transport</option><option>Other</option></select></div>
+  <div class="field"><label>Contact Person</label><input id="supContact"></div><div class="field"><label>Mobile Number</label><input id="supMobile"></div>
+  <div class="field full"><label>Address</label><textarea id="supAddress"></textarea></div>
+ </div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('supplierModal')">Cancel</button><button class="btn primary">Save Supplier</button></div></form>
+</div></div>
+
+<!-- Document modal -->
+<div class="modal-backdrop" id="documentModal"><div class="modal">
+ <div class="modal-head"><div><div class="crumb">SALES DOCUMENT</div><h2 id="documentTitle">Create Quotation</h2></div><button class="close" onclick="closeModal('documentModal')">×</button></div>
+ <form id="documentForm"><input type="hidden" id="docType">
+ <div class="form-grid">
+  <div class="field"><label>Document Number *</label><input id="docNumber" required></div><div class="field"><label>Date *</label><input id="docDate" type="date" required></div>
+  <div class="field"><label>Customer *</label><select id="docCustomer" required></select></div><div class="field"><label>Customer GSTIN</label><input id="docGst"></div>
+  <div class="field full"><label>Billing Address</label><textarea id="docAddress"></textarea></div>
+  <div class="field full"><label>Job / Product Description *</label><input id="docDescription" placeholder="e.g. Sweet box, cake box, visiting cards, die cutting…" required></div>
+  <div class="field"><label>Quantity *</label><input id="docQty" type="number" min="1" value="1" required></div><div class="field"><label>Unit</label><select id="docUnit"><option>Nos</option><option>Boxes</option><option>Pieces</option><option>Sheets</option><option>Sets</option><option>Job</option></select></div>
+  <div class="field"><label>Rate (₹) *</label><input id="docRate" type="number" min="0" step=".01" required></div><div class="field"><label>Discount (₹)</label><input id="docDiscount" type="number" min="0" step=".01" value="0"></div>
+  <div class="field"><label>GST Rate</label><select id="docGstRate"><option value="0">No GST / 0%</option><option value="5">5%</option><option value="12">12%</option><option value="18">18%</option><option value="28">28%</option></select></div>
+  <div class="field"><label>Advance / Amount Received (₹)</label><input id="docReceived" type="number" min="0" step=".01" value="0"></div>
+  <div class="field full"><label>Notes / Terms</label><textarea id="docNotes" placeholder="Delivery terms, validity, payment terms…"></textarea></div>
+ </div>
+ <div class="card" style="margin-top:14px;background:#fafaf8;box-shadow:none"><div class="kpi-line"><span>Subtotal</span><b id="docSubtotal">₹0.00</b></div><div class="kpi-line"><span>Discount</span><b id="docDiscountView">₹0.00</b></div><div class="kpi-line"><span>Taxable Amount</span><b id="docTaxable">₹0.00</b></div><div class="kpi-line"><span>GST</span><b id="docTax">₹0.00</b></div><div class="kpi-line"><span><b>Grand Total</b></span><b id="docTotal">₹0.00</b></div><div class="kpi-line"><span>Balance Due</span><b id="docBalance">₹0.00</b></div></div>
+ <div class="modal-actions"><button type="button" class="btn" onclick="closeModal('documentModal')">Cancel</button><button type="button" class="btn" onclick="previewDocument()">Preview / Print</button><button class="btn primary">Save Document</button></div>
+ </form>
+</div></div>
+
+<!-- Payment modal -->
+<div class="modal-backdrop" id="paymentModal"><div class="modal">
+ <div class="modal-head"><div><div class="crumb">PAYMENT RECORD</div><h2>Record Customer Payment</h2></div><button class="close" onclick="closeModal('paymentModal')">×</button></div>
+ <form id="paymentForm"><div class="form-grid">
+  <div class="field"><label>Invoice *</label><select id="paymentInvoice" required></select></div><div class="field"><label>Payment Date *</label><input id="paymentDate" type="date" required></div>
+  <div class="field"><label>Amount Received (₹) *</label><input id="paymentAmount" type="number" min=".01" step=".01" required></div><div class="field"><label>Payment Mode</label><select id="paymentMode"><option>Cash</option><option>UPI</option><option>Google Pay</option><option>PhonePe</option><option>Bank Transfer</option><option>Cheque</option><option>Other</option></select></div>
+  <div class="field full"><label>Reference / Notes</label><input id="paymentNotes"></div>
+ </div><div class="modal-actions"><button type="button" class="btn" onclick="closeModal('paymentModal')">Cancel</button><button class="btn primary">Save Payment</button></div></form>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STORE='mm_print_pack_full_app_v1';
+const defaults={transactions:[],customers:[],suppliers:[],quotations:[],invoices:[],payments:[]};
+let db=loadDB();
+function loadDB(){try{return {...defaults,...JSON.parse(localStorage.getItem(STORE)||'{}')}}catch(e){return {...defaults}}}
+function persist(){localStorage.setItem(STORE,JSON.stringify(db));renderAll()}
+function uid(prefix){return prefix+'-'+Date.now().toString().slice(-8)+'-'+Math.floor(Math.random()*90+10)}
+function money(n){return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(n)||0)}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+function openModal(id){document.getElementById(id).classList.add('open')}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+const pageTitles={dashboard:'Business Overview',customers:'Customer Management',suppliers:'Supplier Management',quotations:'Quotation Management',invoices:'Invoice Management',income:'Income Management',expenses:'Expense Management',payments:'Payment Tracking',transactions:'Transaction Register',reports:'Reports & Analytics',settings:'Business Settings'};
+function showPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.toggle('active',x.id===id));document.querySelectorAll('.nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===id));document.getElementById('pageTitle').textContent=pageTitles[id]||'Dashboard';document.getElementById('crumbPage').textContent=id.toUpperCase();renderAll()}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
+function sum(arr,fn){return arr.reduce((a,x)=>a+fn(x),0)}
+function totals(){const inc=sum(db.transactions.filter(x=>x.type==='income'),x=>x.amount),exp=sum(db.transactions.filter(x=>x.type==='expense'),x=>x.amount);return {inc,exp,net:inc-exp,receivable:sum(db.invoices,x=>Math.max(0,x.total-x.received)),payable:0,quotes:sum(db.quotations,x=>x.total),invoices:sum(db.invoices,x=>x.total)}}
+function renderDashboard(){
+ const t=totals();[['dashIncome',t.inc],['dashExpense',t.exp],['dashNet',t.net],['dashReceivable',t.receivable],['dashQuote',t.quotes],['dashInvoice',t.invoices],['dashPayable',t.payable]].forEach(([id,v])=>document.getElementById(id).textContent=money(v));
+ document.getElementById('dashCustomers').textContent=db.customers.length;
+ const latest=[...db.transactions].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,6);
+ document.getElementById('recentTransactions').innerHTML=latest.map(x=>`<div class="list-row"><div><div class="row-title">${esc(x.category)}</div><div class="row-sub">${esc(x.date)} · ${esc(x.party||x.notes||x.mode)}</div></div><div class="amount ${x.type==='income'?'positive':'negative'}">${x.type==='income'?'+':'−'}${money(x.amount)}</div></div>`).join('')||'<div class="empty">No transactions yet. Add an income or expense entry.</div>';
+ const groups={};db.transactions.filter(x=>x.type==='expense').forEach(x=>groups[x.category]=(groups[x.category]||0)+x.amount);
+ const sorted=Object.entries(groups).sort((a,b)=>b[1]-a[1]).slice(0,6),max=sorted[0]?.[1]||1;
+ document.getElementById('expenseBreakdown').innerHTML=sorted.map(([k,v])=>`<div class="bar-item"><div class="bar-caption"><span>${esc(k)}</span><b>${money(v)}</b></div><div class="bar-track"><div class="bar-fill" style="width:${v/max*100}%"></div></div></div>`).join('')||'<div class="empty">Expense categories will appear here after entries are saved.</div>';
+}
+const incomeCats=['Customer Invoice Payment','Advance Payment','Box Manufacturing','Die Cutting Charges','Folding Charges','Printing Charges','Other Business Income','Other Sources'];
+const expenseCats=['Salary','Labour Payment','Designer Payment','Printing Payment','Paper / Raw Material','Duplex Board / Kraft Paper','Ink & Consumables','Lamination Materials','Gum & Adhesives','Machinery Maintenance','Machine Spare Parts','Electricity','Water','Rent','Transportation','Loading / Unloading','Office Expense','Internet / Mobile','Bank Charges','Cleaning','Miscellaneous'];
+function updateEntryCats(){const type=document.getElementById('entryType').value;document.getElementById('entryTitle').textContent=type==='income'?'Record Income':'Record Expense';document.getElementById('entryCategory').innerHTML=(type==='income'?incomeCats:expenseCats).map(x=>`<option>${esc(x)}</option>`).join('')}
+function openEntry(type){document.getElementById('entryForm').reset();document.getElementById('entryType').value=type;document.getElementById('entryDate').value=new Date().toISOString().slice(0,10);updateEntryCats();openModal('entryModal')}
+document.getElementById('entryType').addEventListener('change',updateEntryCats);
+document.getElementById('entryForm').addEventListener('submit',e=>{e.preventDefault();const x={id:uid('TX'),type:document.getElementById('entryType').value,date:document.getElementById('entryDate').value,category:document.getElementById('entryCategory').value,amount:Number(document.getElementById('entryAmount').value),mode:document.getElementById('entryMode').value,party:document.getElementById('entryParty').value,reference:document.getElementById('entryReference').value,owner:document.getElementById('entryOwner').value,notes:document.getElementById('entryNotes').value};if(!(x.amount>0))return toast('Enter an amount greater than zero.');db.transactions.push(x);persist();closeModal('entryModal');toast('Transaction saved successfully.')});
+function renderEntries(type){const q=(document.getElementById(type+'Search')?.value||'').toLowerCase(),arr=db.transactions.filter(x=>x.type===type&&[x.category,x.party,x.notes,x.mode].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));const total=sum(arr,x=>x.amount);document.getElementById(type+'PageTotal').textContent=money(total);document.getElementById(type+'PageCount').textContent=arr.length;const id=type==='income'?'incomeRows':'expenseRows';document.getElementById(id).innerHTML=arr.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.category)}</td><td>${esc(x.party||'—')}</td><td>${esc(x.mode)}</td><td>${esc(x.notes||'—')}</td><td><b>${money(x.amount)}</b></td><td><button class="btn small danger" onclick="deleteTransaction('${x.id}')">Delete</button></td></tr>`).join('')||`<tr><td colspan="7" class="empty">No ${type} entries found.</td></tr>`}
+function renderTransactions(){const q=(document.getElementById('transactionSearch')?.value||'').toLowerCase(),f=document.getElementById('transactionFilter')?.value||'',arr=db.transactions.filter(x=>(!f||x.type===f)&&[x.category,x.party,x.notes,x.mode,x.reference].join(' ').toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('transactionRows').innerHTML=arr.map(x=>`<tr><td>${esc(x.date)}</td><td><span class="pill ${x.type}">${x.type==='income'?'Income':'Expense'}</span></td><td>${esc(x.category)}</td><td>${esc(x.party||'—')}</td><td>${esc(x.mode)}</td><td>${esc(x.reference||'—')}</td><td><b>${money(x.amount)}</b></td><td><button class="btn small danger" onclick="deleteTransaction('${x.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="8" class="empty">No transactions found.</td></tr>'}
+function deleteTransaction(id){if(!confirm('Delete this prototype transaction?'))return;db.transactions=db.transactions.filter(x=>x.id!==id);persist();toast('Transaction deleted.')}
+function openCustomer(){document.getElementById('customerForm').reset();openModal('customerModal')}
+document.getElementById('customerForm').addEventListener('submit',e=>{e.preventDefault();db.customers.push({id:uid('CUS'),name:custName.value,contact:custContact.value,mobile:custMobile.value,whatsapp:custWhatsapp.value,email:custEmail.value,gst:custGst.value,address:custAddress.value,notes:custNotes.value});persist();closeModal('customerModal');toast('Customer saved.')});
+function renderCustomers(){const q=(document.getElementById('customerSearch')?.value||'').toLowerCase(),arr=db.customers.filter(x=>[x.name,x.contact,x.mobile,x.gst,x.address].join(' ').toLowerCase().includes(q));document.getElementById('customerRows').innerHTML=arr.map(x=>`<tr><td><strong>${esc(x.name)}</strong></td><td>${esc(x.contact||'—')}</td><td>${esc(x.mobile)}</td><td>${esc(x.gst||'—')}</td><td>${esc(x.address||'—')}</td><td><button class="btn small danger" onclick="deleteCustomer('${x.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No customers saved. Add your first customer.</td></tr>'}
+function deleteCustomer(id){if(!confirm('Delete this customer?'))return;db.customers=db.customers.filter(x=>x.id!==id);persist()}
+function openSupplier(){document.getElementById('supplierForm').reset();openModal('supplierModal')}
+document.getElementById('supplierForm').addEventListener('submit',e=>{e.preventDefault();db.suppliers.push({id:uid('SUP'),name:supName.value,category:supCategory.value,contact:supContact.value,mobile:supMobile.value,address:supAddress.value});persist();closeModal('supplierModal');toast('Supplier saved.')});
+function renderSuppliers(){const q=(document.getElementById('supplierSearch')?.value||'').toLowerCase(),arr=db.suppliers.filter(x=>[x.name,x.category,x.contact,x.mobile,x.address].join(' ').toLowerCase().includes(q));document.getElementById('supplierRows').innerHTML=arr.map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(x.category)}</td><td>${esc(x.contact||'—')}</td><td>${esc(x.mobile||'—')}</td><td>${esc(x.address||'—')}</td><td><button class="btn small danger" onclick="deleteSupplier('${x.id}')">Delete</button></td></tr>`).join('')||'<tr><td colspan="6" class="empty">No suppliers saved.</td></tr>'}
+function deleteSupplier(id){if(!confirm('Delete this supplier?'))return;db.suppliers=db.suppliers.filter(x=>x.id!==id);persist()}
+function nextNumber(type){const a=type==='quotation'?db.quotations:db.invoices;return (type==='quotation'?'MMP/Q/':'MMP/INV/')+String(new Date().getFullYear())+'/'+String(a.length+1).padStart(4,'0')}
+function openDocument(type){document.getElementById('documentForm').reset();document.getElementById('docType').value=type;document.getElementById('documentTitle').textContent=type==='quotation'?'Create Quotation':'Create Invoice';document.getElementById('docNumber').value=nextNumber(type);document.getElementById('docDate').value=new Date().toISOString().slice(0,10);document.getElementById('docReceived').value='0';document.getElementById('docDiscount').value='0';document.getElementById('docGstRate').value='0';document.getElementById('docCustomer').innerHTML='<option value="">Select customer</option>'+db.customers.map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join('');document.getElementById('docCustomer').onchange=fillCustomer;updateDocTotals();openModal('documentModal')}
+function fillCustomer(){const c=db.customers.find(x=>x.id===document.getElementById('docCustomer').value);document.getElementById('docGst').value=c?.gst||'';document.getElementById('docAddress').value=c?.address||''}
+['docQty','docRate','docDiscount','docGstRate','docReceived'].forEach(id=>document.getElementById(id).addEventListener('input',updateDocTotals));
+function docCalc(){const qty=Number(docQty.value)||0,rate=Number(docRate.value)||0,sub=qty*rate,discount=Math.min(Number(docDiscount.value)||0,sub),taxable=Math.max(0,sub-discount),tax=taxable*(Number(docGstRate.value)||0)/100,total=taxable+tax,received=Number(docReceived.value)||0;return {qty,rate,sub,discount,taxable,tax,total,received,balance:Math.max(0,total-received)}}
+function updateDocTotals(){const x=docCalc();docSubtotal.textContent=money(x.sub);docDiscountView.textContent=money(x.discount);docTaxable.textContent=money(x.taxable);docTax.textContent=money(x.tax);docTotal.textContent=money(x.total);docBalance.textContent=money(x.balance)}
+document.getElementById('documentForm').addEventListener('submit',e=>{e.preventDefault();const type=docType.value,c=db.customers.find(x=>x.id===docCustomer.value),v=docCalc();if(!c)return toast('Select a customer first.');if(v.total<=0)return toast('Enter a valid quantity and rate.');const x={id:uid(type==='quotation'?'Q':'INV'),number:docNumber.value,date:docDate.value,customerId:c.id,customer:c.name,gst:docGst.value,address:docAddress.value,description:docDescription.value,qty:v.qty,unit:docUnit.value,rate:v.rate,subtotal:v.sub,discount:v.discount,taxable:v.taxable,gstRate:Number(docGstRate.value),tax:v.tax,total:v.total,received:type==='invoice'?v.received:0,balance:type==='invoice'?v.balance:v.total,status:type==='quotation'?'Draft':(v.balance<=0?'Paid':v.received>0?'Partially Paid':'Unpaid'),notes:docNotes.value};(type==='quotation'?db.quotations:db.invoices).push(x);persist();closeModal('documentModal');toast(type==='quotation'?'Quotation saved.':'Invoice saved.')});
+function renderDocuments(type){const arr=type==='quotation'?db.quotations:db.invoices,search=(document.getElementById(type==='quotation'?'quoteSearch':'invoiceSearch')?.value||'').toLowerCase(),status=document.getElementById(type==='quotation'?'quoteStatus':'invoiceStatus')?.value||'',filtered=arr.filter(x=>(!status||x.status===status)&&[x.number,x.customer,x.description].join(' ').toLowerCase().includes(search));const target=document.getElementById(type==='quotation'?'quotationRows':'invoiceRows');target.innerHTML=filtered.map(x=>type==='quotation'?`<tr><td><b>${esc(x.number)}</b></td><td>${esc(x.date)}</td><td>${esc(x.customer)}</td><td>${esc(x.description)}<div class="muted">${x.qty} ${esc(x.unit)}</div></td><td><b>${money(x.total)}</b></td><td><span class="pill ${x.status.toLowerCase()}">${esc(x.status)}</span></td><td><button class="btn small" onclick="printDocument('${x.id}','quotation')">Print</button> <button class="btn small danger" onclick="deleteDocument('${x.id}','quotation')">Delete</button></td></tr>`:`<tr><td><b>${esc(x.number)}</b></td><td>${esc(x.date)}</td><td>${esc(x.customer)}</td><td>${money(x.total)}</td><td>${money(x.received)}</td><td><b>${money(x.balance)}</b></td><td><span class="pill ${x.status==='Paid'?'paid':x.status==='Unpaid'?'pending':'partial'}">${esc(x.status)}</span></td><td><button class="btn small" onclick="printDocument('${x.id}','invoice')">Print</button> <button class="btn small danger" onclick="deleteDocument('${x.id}','invoice')">Delete</button></td></tr>`).join('')||`<tr><td colspan="${type==='quotation'?7:8}" class="empty">No ${type}s saved yet.</td></tr>`}
+function deleteDocument(id,type){if(!confirm('Delete this document from the local prototype?'))return;const key=type==='quotation'?'quotations':'invoices';db[key]=db[key].filter(x=>x.id!==id);persist()}
+function documentHtml(x,type){return `<html><head><title>${esc(x.number)}</title><style>body{font:14px Arial;color:#171717;padding:35px}header{display:flex;justify-content:space-between;border-bottom:4px solid #ffd000;padding-bottom:18px}img{width:180px}h1{font-size:22px}small{color:#555}.details{display:flex;justify-content:space-between;margin:25px 0}.line{border-collapse:collapse;width:100%;margin-top:25px}.line td,.line th{border:1px solid #ddd;padding:12px;text-align:left}.total{margin:20px 0 0 auto;width:280px}.total div{display:flex;justify-content:space-between;padding:7px;border-bottom:1px solid #ddd}.foot{margin-top:50px;border-top:1px solid #ddd;padding-top:12px;font-size:11px}</style></head><body><header><div><h1>MM PRINT &amp; PACK</h1><small>GSTIN: 37HDBPK0327M2ZE<br>Phone: 95022 23591<br>9-118/3, Narsimhanagar, Gopalapatnam, Visakhapatnam</small></div><h1>${type==='quotation'?'QUOTATION':'TAX INVOICE'}</h1></header><div class="details"><div><b>Bill To</b><br>${esc(x.customer)}<br>${esc(x.address)}<br>GSTIN: ${esc(x.gst||'—')}</div><div><b>No:</b> ${esc(x.number)}<br><b>Date:</b> ${esc(x.date)}</div></div><table class="line"><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr><tr><td>${esc(x.description)}</td><td>${x.qty} ${esc(x.unit)}</td><td>${money(x.rate)}</td><td>${money(x.subtotal)}</td></tr></table><div class="total"><div><span>Subtotal</span><b>${money(x.subtotal)}</b></div><div><span>Discount</span><b>${money(x.discount)}</b></div><div><span>Taxable</span><b>${money(x.taxable)}</b></div><div><span>GST (${x.gstRate}%)</span><b>${money(x.tax)}</b></div><div><b>Grand Total</b><b>${money(x.total)}</b></div>${type==='invoice'?`<div><span>Received</span><b>${money(x.received)}</b></div><div><b>Balance</b><b>${money(x.balance)}</b></div>`:''}</div><p><b>Notes / Terms:</b> ${esc(x.notes||'—')}</p><div class="foot">Factory: 58-14-43/2A, MIG-34, Marripalem, VUDA Layout, Visakhapatnam – 530007, Andhra Pradesh, India.<br>This document is generated by the MM PRINT &amp; PACK prototype. Verify tax and statutory details before issuing.</div><script>window.onload=()=>window.print()<\/script></body></html>`}
+function printDocument(id,type){const arr=type==='quotation'?db.quotations:db.invoices,x=arr.find(y=>y.id===id);if(!x)return;const w=window.open('','_blank');if(!w)return toast('Allow pop-ups to print the document.');w.document.write(documentHtml(x,type));w.document.close()}
+function previewDocument(){const type=docType.value,c=db.customers.find(x=>x.id===docCustomer.value),v=docCalc();if(!c)return toast('Select a customer before preview.');const x={number:docNumber.value,date:docDate.value,customer:c.name,gst:docGst.value,address:docAddress.value,description:docDescription.value,qty:v.qty,unit:docUnit.value,rate:v.rate,subtotal:v.sub,discount:v.discount,taxable:v.taxable,gstRate:Number(docGstRate.value),tax:v.tax,total:v.total,received:v.received,balance:v.balance,notes:docNotes.value};const w=window.open('','_blank');if(!w)return toast('Allow pop-ups to preview.');w.document.write(documentHtml(x,type));w.document.close()}
+function openPayment(){const select=document.getElementById('paymentInvoice');select.innerHTML=db.invoices.filter(x=>x.balance>0).map(x=>`<option value="${x.id}">${esc(x.number)} — ${esc(x.customer)} — Due ${money(x.balance)}</option>`).join('');if(!select.options.length)select.innerHTML='<option value="">No unpaid invoices</option>';document.getElementById('paymentDate').value=new Date().toISOString().slice(0,10);document.getElementById('paymentForm').reset();openModal('paymentModal')}
+document.getElementById('paymentForm').addEventListener('submit',e=>{e.preventDefault();const inv=db.invoices.find(x=>x.id===paymentInvoice.value),amount=Number(paymentAmount.value);if(!inv||amount<=0)return toast('Choose an unpaid invoice and enter a valid payment.');if(amount>inv.balance)return toast('Payment exceeds the outstanding balance.');db.payments.push({id:uid('PAY'),invoiceId:inv.id,date:paymentDate.value,amount,mode:paymentMode.value,notes:paymentNotes.value});inv.received+=amount;inv.balance=Math.max(0,inv.total-inv.received);inv.status=inv.balance===0?'Paid':'Partially Paid';persist();closeModal('paymentModal');toast('Payment recorded and invoice balance updated.')});
+function renderPayments(){const receivables=db.invoices.filter(x=>x.balance>0);document.getElementById('receivables').innerHTML=receivables.map(x=>`<div class="list-row"><div><div class="row-title">${esc(x.customer)}</div><div class="row-sub">${esc(x.number)} · ${esc(x.date)}</div></div><div class="amount negative">${money(x.balance)}</div></div>`).join('')||'<div class="empty">No customer receivables.</div>';document.getElementById('payables').innerHTML='<div class="empty">Supplier bill and payable tracking will appear here after supplier purchase/bill management is connected.</div>'}
+function renderReports(){const from=reportFrom.value,to=reportTo.value,arr=db.transactions.filter(x=>(!from||x.date>=from)&&(!to||x.date<=to)),inc=sum(arr.filter(x=>x.type==='income'),x=>x.amount),exp=sum(arr.filter(x=>x.type==='expense'),x=>x.amount);reportIncome.textContent=money(inc);reportExpense.textContent=money(exp);reportNet.textContent=money(inc-exp);reportCount.textContent=arr.length;const g={};arr.filter(x=>x.type==='expense').forEach(x=>g[x.category]=(g[x.category]||0)+x.amount);const entries=Object.entries(g).sort((a,b)=>b[1]-a[1]),max=entries[0]?.[1]||1;reportCategories.innerHTML=entries.map(([k,v])=>`<div class="bar-item"><div class="bar-caption"><span>${esc(k)}</span><b>${money(v)}</b></div><div class="bar-track"><div class="bar-fill" style="width:${v/max*100}%"></div></div></div>`).join('')||'<div class="empty">No expense entries in this date range.</div>';const t=totals();reportTotals.innerHTML=`<div class="kpi-line"><span>All-time income entries</span><b>${money(t.inc)}</b></div><div class="kpi-line"><span>All-time expense entries</span><b>${money(t.exp)}</b></div><div class="kpi-line"><span>Quotation value</span><b>${money(t.quotes)}</b></div><div class="kpi-line"><span>Invoice value</span><b>${money(t.invoices)}</b></div><div class="kpi-line"><span>Customer receivables</span><b>${money(t.receivable)}</b></div>`}
+function exportCSV(){const rows=[['ID','Date','Type','Category','Party','Payment Mode','Reference','Amount','Owner','Notes'],...db.transactions.map(x=>[x.id,x.date,x.type,x.category,x.party,x.mode,x.reference,x.amount,x.owner,x.notes])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n');downloadBlob(csv,'mm-print-pack-transactions.csv','text/csv');toast('CSV export downloaded.')}
+function downloadBackup(){downloadBlob(JSON.stringify(db,null,2),'mm-print-pack-backup.json','application/json');toast('JSON backup downloaded.')}
+function downloadBlob(content,name,type){const blob=new Blob([content],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+function clearData(){if(!confirm('This will permanently clear all local prototype records in this browser. Continue?'))return;db={...defaults};persist();toast('Local prototype data cleared.')}
+function renderAll(){renderDashboard();renderCustomers();renderSuppliers();renderDocuments('quotation');renderDocuments('invoice');renderEntries('income');renderEntries('expense');renderTransactions();renderPayments();renderReports()}
+renderAll();
+</script>
+</body>
+</html>'''
+
+(root / "index.html").write_text(html, encoding="utf-8")
+(root / "logo-code.html").write_text("""<!-- Official MM PRINT & PACK logo snippet. Keep assets/business-logo.png in place. -->
+<img src="assets/business-logo.png" alt="MM PRINT & PACK" class="mm-business-logo">
+<style>
+.mm-business-logo { display:block; width:220px; max-width:100%; height:auto; object-fit:contain; }
+</style>
+""", encoding="utf-8")
+(root / "README.txt").write_text("""MM PRINT & PACK — FULL HTML APP DESIGN STARTER
+
+FILES
+- index.html: detailed responsive HTML/CSS/JavaScript application UI.
+- assets/business-logo.png: original logo image provided by the business owner.
+- logo-code.html: reusable logo HTML/CSS snippet.
+
+PREVIEW
+1. Extract the ZIP.
+2. Keep the assets folder beside index.html.
+3. Open index.html in Chrome or Edge.
+
+INCLUDED FRONT-END MODULES
+Dashboard, customers, suppliers, quotations, invoices, income, expenses, payments,
+transaction register, reports, business settings, local JSON backup and CSV export.
+The prototype can save local browser records, create basic quotation/invoice previews
+and print them, and record partial invoice payments against saved invoices.
+
+IMPORTANT PRODUCTION LIMITATIONS
+This is a front-end HTML prototype, not a production accounting system.
+localStorage is only on the current browser/device. Two-owner login, shared cloud sync,
+database permissions, secure backups, audit logs, supplier bill/payable workflow,
+WhatsApp delivery integration, legally compliant GST invoice validation and server-side
+PDF generation must be implemented and tested before real business use.
+Do not put private backend keys in this HTML file. Have a developer configure a secure
+backend and verify GST/tax rules with the business accountant.
+""", encoding="utf-8")
+
+zip_path = Path("/mnt/data/MM-PRINT-PACK-Full-HTML-App.zip")
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in root.rglob("*"):
+        if p.is_file():
+            z.write(p, p.relative_to(root.parent))
+print("Created:", zip_path)
+print("HTML size:", (root/"index.html").stat().st_size, "bytes")
